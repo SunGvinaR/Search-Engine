@@ -6,12 +6,13 @@ import org.springframework.stereotype.Repository;
 import searchengine.model.Page;
 import searchengine.model.Site;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public interface PageRepository extends JpaRepository<Page, Long> {
 
     List<Page> findBySite(Site site);
-    List<Page> findBySiteAndUrl(Site site, String url);
+    boolean existsBySiteAndPath(Site site, String path);
     Page findByPathAndSite(String path, Site site);
 }

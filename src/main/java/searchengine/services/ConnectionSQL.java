@@ -23,7 +23,7 @@ public class ConnectionSQL {
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
     public boolean isPageNotFound(String url, Site site){
-        return pageRepository.findBySiteAndUrl(site, url).isEmpty();
+        return pageRepository.existsBySiteAndPath(site, url);
     }
     public void deleterSites(Site site){
         List<Site> sitesForDelete = siteRepository.findByUrl(site.getUrl());

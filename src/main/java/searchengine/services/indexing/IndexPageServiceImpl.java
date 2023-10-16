@@ -45,8 +45,8 @@ public class IndexPageServiceImpl implements IndexPageService {
                 List<Site> sites = connectionSQL.getSiteRepository().findByUrl(siteUrl);
                 if (!sites.isEmpty()) {
                     site = sites.get(0);
-                    List<Page> pages = connectionSQL.getPageRepository().findBySiteAndUrl(site, page);
-                    connectionSQL.deleterPage(pages);
+                    Page pages = connectionSQL.getPageRepository().findByPathAndSite(page, site);
+                    connectionSQL.getPageRepository().delete(pages);
                 } else {
                     site = s.clone();
                     connectionSQL.write(site, Site.Status.INDEXING);
