@@ -14,5 +14,6 @@ import java.util.Set;
 public interface LemmaRepository extends JpaRepository<Lemma, Long> {
     Lemma findByLemmaAndSite(String lemma, Site site);
     ArrayList<Lemma> findByLemmaInAndSiteOrderByFrequencyAsc(Set<String> lemmaSet, Site site);
+    ArrayList<Lemma> findByLemmaInOrderByFrequencyAsc(Set<String> lemmaSet);
     List<Lemma> findBySite(Site site);
 }

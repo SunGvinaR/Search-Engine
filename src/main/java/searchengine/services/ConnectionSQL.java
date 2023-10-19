@@ -82,4 +82,14 @@ public class ConnectionSQL {
     public List<Index> writeAll(List<Index> indexes){
         return indexRepository.saveAll(indexes);
     }
+    public ArrayList<Lemma> searchLemmas(String siteUrl, Set<String> lemmaSet){
+        try {
+            Site site = siteRepository.findByUrl(siteUrl).get(0);
+            return lemmaRepository.findByLemmaInAndSiteOrderByFrequencyAsc(lemmaSet, site);
+        } catch (IndexOutOfBoundsException e){
+            return lemmaRepository.findByLemmaInOrderByFrequencyAsc(lemmaSet);
+        }
+    }
+
 }
+
