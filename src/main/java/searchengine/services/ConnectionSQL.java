@@ -36,9 +36,9 @@ public class ConnectionSQL {
         pagesForDelete.forEach(this::deleterIndexOnSite);
         pageRepository.deleteAll(pagesForDelete);
     }
-    public void deleterPage(List<Page> pages){
-        pages.forEach(this::deleterIndexOnPage);
-        pageRepository.deleteAll(pages);
+    public void deleterPage(Page page){
+        deleterIndexOnPage(page);
+        pageRepository.delete(page);
     }
     public void deleterIndexOnPage(Page page){
         List<Index> indexes = indexRepository.findByPage(page);
@@ -55,32 +55,35 @@ public class ConnectionSQL {
         List<Index> indexes = indexRepository.findByPage(page);
         indexRepository.deleteAll(indexes);
     }
-    public Page write(Page page) {
-        write(page.getSite(), Site.Status.INDEXING);
+    public Page save(Page page) {
+        save(page.getSite(), Site.Status.INDEXING);
         return pageRepository.save(page);
     }
-    public void write(Site site, Site.Status status){
+    public void save(Site site, Site.Status status){
         site.setStatus(status);
         site.setStatusTime(new Date(System.currentTimeMillis()));
         siteRepository.save(site);
     }
-    public void write(Site site,  String error) {
+    public void save(Site site, String error) {
         site.setLastError(error);
-        write(site, Site.Status.FAILED);
+        save(site, Site.Status.FAILED);
     }
-    public Page writePage(String url, int statusCode, String content, Site site){
+    public Lemma save(Lemma lemma){
+        return lemmaRepository.save(lemma);
+    }
+    public void saveAll(ArrayList<Lemma> lemmas){
+        lemmaRepository.saveAll(lemmas);
+    }
+    public Page save(String url, int statusCode, String content, Site site){
         Page page = new Page();
         page.setPath(url);
         page.setCode(statusCode);
         page.setContent(content);
         page.setSite(site);
-        return write(page);
+        return save(page);
     }
-    public Index write(Index index){
-        return indexRepository.save(index);
-    }
-    public List<Index> writeAll(List<Index> indexes){
-        return indexRepository.saveAll(indexes);
+    public void writeAll(List<Index> indexes){
+        indexRepository.saveAll(indexes);
     }
     public ArrayList<Lemma> searchLemmas(String siteUrl, Set<String> lemmaSet){
         try {
@@ -90,6 +93,26 @@ public class ConnectionSQL {
             return lemmaRepository.findByLemmaInOrderByFrequencyAsc(lemmaSet);
         }
     }
-
+    public Site findSiteByUrl(String url){
+        return siteRepository.findByUrl(url).get(0);
+    }
+    public Page findPageByPathAndSite(String siteUrl, String path){
+        return pageRepository.findByPathAndSite(path, findSiteByUrl(siteUrl));
+    }
+    public Page findPageByPathAndSite(Site site, String path){
+        return pageRepository.findByPathAndSite(path, site);
+    }
+    public List<Index> findIndexesByLemma(Lemma lemma){
+        return indexRepository.findByLemma(lemma);
+    }
+    public boolean existsIndexesByLemmaAndPage(Lemma lemma, Page page){
+        return indexRepository.existsByLemmaAndPage(lemma, page);
+    }
+    public ArrayList<Index> findIndexesByLemmasAndPage(ArrayList<Lemma> lemmas, Page page){
+        return indexRepository.findByLemmaInAndPage(lemmas, page);
+    }
+    public Lemma findLemmaByLemmaAndSite(String lemma, Site site) throws Exception{
+        return lemmaRepository.findByLemmaAndSite(lemma, site);
+    }
 }
 

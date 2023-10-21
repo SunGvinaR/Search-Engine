@@ -39,7 +39,7 @@ public class StartIndexingServiceImpl implements StartIndexingService, Runnable 
             connectionSQL.deleterSites(site);
 
             Indexer indexer = new Indexer("/", siteClone, connectionSQL, new Vector<>());
-            connectionSQL.write(siteClone, Site.Status.INDEXING);
+            connectionSQL.save(siteClone, Site.Status.INDEXING);
             new Thread(indexer).start();
         }
     }

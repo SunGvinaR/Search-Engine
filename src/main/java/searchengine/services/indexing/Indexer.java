@@ -1,7 +1,6 @@
 package searchengine.services.indexing;
 import java.util.Vector;
 import java.util.concurrent.RecursiveAction;
-import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.RequiredArgsConstructor;
@@ -36,20 +35,16 @@ public class Indexer extends RecursiveAction implements Runnable {
         invoke();
         switch (status) {
             case Stops -> {
-                connectionSQL.write(site, "Индексация остановлена пользователем");
-                System.out.println("Я ошибся");
+                connectionSQL.save(site, "Индексация остановлена пользователем");
             }
             case OnePageIndexing -> {
-                System.out.println("Я готов");
             }
             default -> {
-                connectionSQL.write(site, Site.Status.INDEXED);
-                System.out.println("Я готов");
+                connectionSQL.save(site, Site.Status.INDEXED);
             }
         }
         if (countSitesAreIndexing.decrementAndGet() == 0) {
             status = Status.Ready;
-            System.out.println("Я всё");
         }
     }
     @Override
@@ -90,12 +85,12 @@ public class Indexer extends RecursiveAction implements Runnable {
                 content = "1";
             }
             try {
-                Page page = connectionSQL.writePage(url, statusCode, content, site);
+                Page page = connectionSQL.save(url, statusCode, content, site);
                 if(statusCode == 200){
                     new CreateIndex(page, connectionSQL).builder();
                 }
             } catch (Exception e){
-                connectionSQL.writePage(url, statusCode, e.getMessage(), site);
+                connectionSQL.save(url, statusCode, e.getMessage(), site);
                 foundUrl.remove(url);
                 e.printStackTrace();
                 return new Elements();

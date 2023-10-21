@@ -8,7 +8,6 @@ import searchengine.model.Site;
 import searchengine.model.SitesList1;
 import searchengine.services.ConnectionSQL;
 
-import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,14 +41,14 @@ public class IndexPageServiceImpl implements IndexPageService {
 
         for (Site s : sites.getSites()) {
             if (s.getUrl().equals(siteUrl)) {
-                List<Site> sites = connectionSQL.getSiteRepository().findByUrl(siteUrl);
-                if (!sites.isEmpty()) {
-                    site = sites.get(0);
-                    Page pages = connectionSQL.getPageRepository().findByPathAndSite(page, site);
-                    connectionSQL.getPageRepository().delete(pages);
+                Site findSite = connectionSQL.findSiteByUrl(siteUrl);
+                if (findSite != null) {
+                    site = findSite;
+                    Page pages = connectionSQL.findPageByPathAndSite(site, page);
+                    connectionSQL.deleterPage(pages);
                 } else {
                     site = s.clone();
-                    connectionSQL.write(site, Site.Status.INDEXING);
+                    connectionSQL.save(site, Site.Status.INDEXING);
                 }
             }
         }

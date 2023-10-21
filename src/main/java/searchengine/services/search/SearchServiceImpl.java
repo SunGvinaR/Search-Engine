@@ -46,8 +46,7 @@ public class SearchServiceImpl implements SearchService {
                 findPagesLimit.add(findPages.get(i));
             }
             for (FindPage findPage : findPagesLimit) {
-                Page page = connectionSQL.getPageRepository().findByPathAndSite
-                        (findPage.getUri(), connectionSQL.getSiteRepository().findByUrl(findPage.getSite()).get(0));
+                Page page = connectionSQL.findPageByPathAndSite(findPage.getSite(), findPage.getUri());
                 findPage.setSiteName(page.getSite().getName());
                 findPage.setRelevance(findPage.getRelevance() / maxRelevance);
                 findPage.setTitle(getTitle(page));
@@ -68,14 +67,14 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private ArrayList<Page> searchPages(ArrayList<Lemma> lemmas){
-        List<Index> indices = connectionSQL.getIndexRepository().findByLemma(lemmas.get(0));
+        List<Index> indices = connectionSQL.findIndexesByLemma(lemmas.get(0));
         ArrayList<Page> pages = new ArrayList<>();
         indices.forEach(i -> pages.add(i.getPage()));
         for (int i = 1; i < lemmas.size(); i++) {
             System.out.println(lemmas.get(i).getLemma());
             List<Page> pagesForDelete = new ArrayList<>();
             for (Page page : pages) {
-                if (!connectionSQL.getIndexRepository().existsByLemmaAndPage(lemmas.get(i), page)) {
+                if (!connectionSQL.existsIndexesByLemmaAndPage(lemmas.get(i), page)) {
                     pagesForDelete.add(page);
                 }
             }
@@ -116,7 +115,7 @@ public class SearchServiceImpl implements SearchService {
         return title;
     }
     private float absRelevance(Page page, ArrayList<Lemma> lemmas) {
-        ArrayList<Index> indexesOnPage = connectionSQL.getIndexRepository().findByLemmaInAndPage(lemmas, page);
+        ArrayList<Index> indexesOnPage = connectionSQL.findIndexesByLemmasAndPage(lemmas, page);
         float[] absRelevance = {0};
         indexesOnPage.forEach(i -> absRelevance[0] += i.getRank());
         return absRelevance[0];

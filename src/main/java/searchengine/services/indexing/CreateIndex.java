@@ -24,7 +24,7 @@ public class CreateIndex {
             LemmaFinder lemmaFinder = LemmaFinder.getInstance();
             Map<String, Integer> lemmas = lemmaFinder.collectLemmas(page.getContent());
             ArrayList<Index> indexes = new ArrayList<>();
-            ArrayList<Lemma> lemmasList = new ArrayList<>();
+            ArrayList<Long> idsLemmas = new ArrayList<>();
             for(String lemmaName : lemmas.keySet()){
                 if(Indexer.getStatus().equals(Indexer.Status.Stops)){
                     return;
@@ -33,7 +33,7 @@ public class CreateIndex {
 
                 isReChecking = false;
                 Lemma lemma = createLemma(lemmaName);
-                lemmasList.add(lemma);
+                idsLemmas.add((long) lemma.getId());
 
                 Index index = new Index();
                 index.setLemma(lemma);
@@ -41,7 +41,7 @@ public class CreateIndex {
                 index.setRank(count);
                 indexes.add(index);
             }
-            writeLemma(lemmasList);
+            writeLemma(idsLemmas);
             connectionSQL.writeAll(indexes);
         } catch (InterruptedException | IOException e) {
             System.err.println("Поток был прерван");
@@ -54,17 +54,15 @@ public class CreateIndex {
         if (Indexer.getStatus().equals(Indexer.Status.Stops)) {
             throw new InterruptedException();
         }
-
         try {
-            return connectionSQL.getLemmaRepository().findByLemmaAndSite(lemmaName, site);
+            return connectionSQL.findLemmaByLemmaAndSite(lemmaName, site);
         } catch (Exception e) {
             try {
                 Lemma lemma = new Lemma();
                 lemma.setLemma(lemmaName);
                 lemma.setSite(site);
                 lemma.setFrequency(0);
-                connectionSQL.getLemmaRepository().save(lemma);
-                return lemma;
+                return connectionSQL.save(lemma);
             } catch (Exception ex){
                 if(isReChecking){
                     throw ex;
@@ -74,8 +72,9 @@ public class CreateIndex {
             }
         }
     }
-    private synchronized void writeLemma(ArrayList<Lemma> lemmas) {
+    private synchronized void writeLemma(ArrayList<Long> idsLemmas) {
+        ArrayList<Lemma> lemmas = connectionSQL.getLemmaRepository().findByIdIn(idsLemmas);
         lemmas.forEach(l -> l.setFrequency(l.getFrequency() + 1));
-        connectionSQL.getLemmaRepository().saveAll(lemmas);
+        connectionSQL.saveAll(lemmas);
     }
 }
